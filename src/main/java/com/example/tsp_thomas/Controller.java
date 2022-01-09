@@ -17,7 +17,6 @@ import javafx.scene.shape.Line;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Controller {
@@ -46,7 +45,10 @@ public class Controller {
     Pane myPane;
 
     @FXML
-    Button startOptimizeButton;
+    Button startHillCLimbingButton;
+
+    @FXML
+    Button startStepCountingHillCLimbingButton;
 
     @FXML
     Button stopOptimizeButton;
@@ -134,12 +136,28 @@ public class Controller {
     }
 
     @FXML
-    protected void clickStartOptimzie() {
-        startOptimizeButton.setDisable(true);
+    protected void clickStartHillCLimbing() {
+        startHillCLimbingButton.setDisable(true);
+        startStepCountingHillCLimbingButton.setDisable(true);
         thread=new Thread(() -> {
             Solver solver=new Solver(route,this);
             try {
-                solver.start();
+                solver.startHillClimbing();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+        thread.start();
+    }
+
+    @FXML
+    protected void clickStartStepCountingHillCLimbing() {
+        startHillCLimbingButton.setDisable(true);
+        startStepCountingHillCLimbingButton.setDisable(true);
+        thread=new Thread(() -> {
+            Solver solver=new Solver(route,this);
+            try {
+                solver.startStepCountingHillCLimbing();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -149,7 +167,8 @@ public class Controller {
 
     @FXML
     protected void clickStopOptimzie() {
-        startOptimizeButton.setDisable(false);
+        startHillCLimbingButton.setDisable(false);
+        startStepCountingHillCLimbingButton.setDisable(false);
         thread.stop();
     }
 
@@ -193,7 +212,6 @@ public class Controller {
                     public void changed(ObservableValue <? extends Number > observable, Number oldValue, Number newValue)
                     {
                         long delay=(long) (mySlider.getMax()-mySlider.getValue()+mySlider.getMin());
-                        System.out.println(delay);
                         Settings.delay= delay;
                     }
                 });

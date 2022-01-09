@@ -9,26 +9,67 @@ import java.util.Random;
 public class Solver {
     public Random rn = new Random();
 
-    private ArrayList<City> currentSolution;
+    private ArrayList<City> initalSolution;
     private Controller controller;
 
-    public Solver(ArrayList<City> route, Controller controller) {
-        currentSolution=route;
+    public Solver(ArrayList<City> initalSolution, Controller controller) {
+        this.initalSolution=initalSolution;
         this.controller=controller;
     }
 
-    public void start() throws InterruptedException {
+    public void startHillClimbing() throws InterruptedException {
+        ArrayList<City>currentSolution=copy(initalSolution);
+        ArrayList<City>bestSolution=copy(initalSolution);
+        int bestDistance=getDistance(currentSolution);
         while (true){
-            ArrayList<City>neighborSolution=copy(currentSolution);
-            //swapCities(neighborSolution);
-            twoOpt(neighborSolution);
-            if(getDistance(neighborSolution)<getDistance(currentSolution)){
-                currentSolution=neighborSolution;
-                controller.updateSolution(currentSolution);
+            int r1=rn.nextInt((currentSolution.size()-1)-0+1)+0;
+            int r2=rn.nextInt(currentSolution.size()-r1+1)+r1;
+            twoOpt(currentSolution,r1,r2);
+            int newDistance=getDistance(currentSolution);
+            if(newDistance<bestDistance){
+                bestDistance=newDistance;
+                bestSolution=copy(currentSolution);
+                controller.updateSolution(bestSolution);
                 Thread.sleep(Settings.delay);
+            }
+            else{
+                twoOpt(currentSolution,r1,r2);
             }
         }
     }
+
+    public void startStepCountingHillCLimbing() throws InterruptedException {
+        int L=500;
+        int count=0;
+        ArrayList<City>currentSolution=copy(initalSolution);
+        ArrayList<City>bestSolution=copy(initalSolution);
+        int bound=getDistance(bestSolution);
+        while(true){
+            int oldDistance=getDistance(currentSolution);
+            int r1=rn.nextInt((currentSolution.size()-1)-0+1)+0;
+            int r2=rn.nextInt(currentSolution.size()-r1+1)+r1;
+            twoOpt(currentSolution,r1,r2);
+            int newDistance=getDistance(currentSolution);
+            if(newDistance<oldDistance||newDistance<bound){
+                if(getDistance(currentSolution)<getDistance(bestSolution)){
+                    bestSolution=copy(currentSolution);
+                    controller.updateSolution(bestSolution);
+                    Thread.sleep(Settings.delay);
+                }
+            }
+            else{
+                twoOpt(currentSolution,r1,r2);
+            }
+            count++;
+
+            if(count>L){
+                count=0;
+                bound=getDistance(currentSolution);
+            }
+        }
+    }
+
+
 
     private ArrayList<City> copy(ArrayList<City> currentSolution) {
         ArrayList<City>neighborSolution=new ArrayList<>();
@@ -53,6 +94,10 @@ public class Solver {
         Collections.reverse(neighborSolution.subList(r1,r2));
     }
 
+    public void twoOpt(ArrayList<City>neighborSolution,int r1,int r2) {
+        Collections.reverse(neighborSolution.subList(r1,r2));
+    }
+
 
 
 
@@ -70,4 +115,6 @@ public class Solver {
         }
         return distance;
     }
+
+
 }
